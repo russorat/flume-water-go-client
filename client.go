@@ -128,3 +128,7 @@ func (fw *Client) FlumeGet(fetchURL string, flumeResponse interface{}) (err erro
 
 	return nil
 }
+
+func (fw *Client) Close() {
+	fw.client.CloseIdleConnections()
+}
