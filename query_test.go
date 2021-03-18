@@ -17,7 +17,7 @@ func TestFlumeQueryDevice(t *testing.T) {
 	}
 
 	client := NewClient(os.Getenv("FLUME_CLIENT_ID"), os.Getenv("FLUME_CLIENT_SECRET"), os.Getenv("FLUME_USERNAME"), os.Getenv("FLUME_PASSWORD"))
-	devices, _ := client.FetchUserDevices()
+	devices, _ := client.FetchUserDevices(FlumeWaterFetchDeviceRequest{})
 
 	query := FlumeWaterQuery{
 		Bucket:        FlumeWaterBucketDay,

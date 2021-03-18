@@ -3,6 +3,8 @@ package flumewater
 import (
 	"fmt"
 	"log"
+
+	"github.com/google/go-querystring/query"
 )
 
 type FlumeWaterFetchDeviceResponse struct {
@@ -42,8 +44,14 @@ type FlumeWaterUsageProfile struct {
 	IrrigationMaxCycle int    `json:"irrigation_max_cycle"`
 }
 
-func (fw *Client) FetchUserDevices() (devices []FlumeWaterDevice, err error) {
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/devices"
+type FlumeWaterFetchDeviceRequest struct {
+	IncludeUser     bool `json:"user,omitempty"`
+	IncludeLocation bool `json:"location,omitempty"`
+}
+
+func (fw *Client) FetchUserDevices(queryParams FlumeWaterFetchDeviceRequest) (devices []FlumeWaterDevice, err error) {
+	v, _ := query.Values(queryParams)
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/devices?" + v.Encode()
 
 	var flumeResp FlumeWaterFetchDeviceResponse
 	err = fw.FlumeGet(fetchURL, &flumeResp)
@@ -56,8 +64,9 @@ func (fw *Client) FetchUserDevices() (devices []FlumeWaterDevice, err error) {
 	return devices, nil
 }
 
-func (fw *Client) FetchUserDevice(deviceID string) (device FlumeWaterDevice, err error) {
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/devices/" + deviceID
+func (fw *Client) FetchUserDevice(deviceID string, queryParams FlumeWaterFetchDeviceRequest) (device FlumeWaterDevice, err error) {
+	v, _ := query.Values(queryParams)
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/devices/" + deviceID + "?" + v.Encode()
 
 	var flumeResp FlumeWaterFetchDeviceResponse
 	err = fw.FlumeGet(fetchURL, &flumeResp)

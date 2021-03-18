@@ -57,11 +57,11 @@ const (
 type FlumeWaterOperation string
 
 const (
-	FlumeWaterBucketSum     FlumeWaterOperation = "SUM"
-	FlumeWaterBucketAverage FlumeWaterOperation = "AVG"
-	FlumeWaterBucketMin     FlumeWaterOperation = "MIN"
-	FlumeWaterBucketMax     FlumeWaterOperation = "MAX"
-	FlumeWaterBucketCount   FlumeWaterOperation = "CNT"
+	FlumeWaterOperationSum     FlumeWaterOperation = "SUM"
+	FlumeWaterOperationAverage FlumeWaterOperation = "AVG"
+	FlumeWaterOperationMin     FlumeWaterOperation = "MIN"
+	FlumeWaterOperationMax     FlumeWaterOperation = "MAX"
+	FlumeWaterOperationCount   FlumeWaterOperation = "CNT"
 )
 
 type FlumeWaterSortDirection string
