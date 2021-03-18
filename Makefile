@@ -7,4 +7,4 @@ clean:
 	rm -r bin
 
 test:
-	go test -timeout 30s -count=1 .
+	go test -v -timeout 30s -count=1 .

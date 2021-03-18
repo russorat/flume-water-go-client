@@ -17,7 +17,7 @@ const (
 	userAgent            = "github.com/russorat/telegraf-flume-water-input"
 )
 
-type FlumeWaterClient struct {
+type Client struct {
 	ClientID     string
 	ClientSecret string
 	Username     string
@@ -29,8 +29,8 @@ type FlumeWaterClient struct {
 	client   *http.Client
 }
 
-func NewClient(clientID string, clientSecret string, username string, password string) (client FlumeWaterClient) {
-	client = FlumeWaterClient{
+func NewClient(clientID string, clientSecret string, username string, password string) (client Client) {
+	client = Client{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Username:     username,
@@ -42,7 +42,7 @@ func NewClient(clientID string, clientSecret string, username string, password s
 	return client
 }
 
-type FlumeResponseBase struct {
+type ResponseBase struct {
 	Success     bool     `json:"success"`
 	Code        int      `json:"code"`
 	Message     string   `json:"message"`
@@ -56,23 +56,14 @@ type FlumeResponseBase struct {
 	} `json:"pagination"`
 }
 
-type BaseQueryParams struct {
+type QueryParamsBase struct {
 	Limit         int                     `url:"limit,omitempty"`
 	Offset        int                     `url:"offset,omitempty"`
 	SortField     string                  `url:"sort_field,omitempty"`
 	SortDirection FlumeWaterSortDirection `url:"sort_direction,omitempty"`
 }
 
-type FlumeWaterErrorResponse struct {
-	*FlumeResponseBase
-}
-
-type FlumeWaterDetailed struct {
-	Field   string `json:"field"`
-	Message string `json:"message"`
-}
-
-func (fw *FlumeWaterClient) Connect() error {
+func (fw *Client) Connect() error {
 	if fw.Timeout == 0 {
 		fw.Timeout = defaultClientTimeout
 	}
@@ -88,7 +79,7 @@ func (fw *FlumeWaterClient) Connect() error {
 	return nil
 }
 
-func (fw *FlumeWaterClient) createClient(ctx context.Context) (*http.Client, error) {
+func (fw *Client) createClient(ctx context.Context) (*http.Client, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
@@ -99,7 +90,7 @@ func (fw *FlumeWaterClient) createClient(ctx context.Context) (*http.Client, err
 	return client, nil
 }
 
-func (fw *FlumeWaterClient) FlumeGet(fetchURL string, flumeResponse interface{}) (err error) {
+func (fw *Client) FlumeGet(fetchURL string, flumeResponse interface{}) (err error) {
 	if fw.AuthData.AccessToken == "" {
 		fw.GetToken()
 	}
@@ -126,12 +117,6 @@ func (fw *FlumeWaterClient) FlumeGet(fetchURL string, flumeResponse interface{})
 		}
 		bodyString := string(bodyBytes)
 
-		var flumeErrorResp = new(FlumeWaterErrorResponse)
-		decoder := json.NewDecoder(resp.Body)
-
-		if err = decoder.Decode(flumeErrorResp); err != nil {
-			return fmt.Errorf("payload JSON decode failed: %w", err)
-		}
 		return fmt.Errorf("when reading from [%s] received status code: %d with error: %s", fetchURL, resp.StatusCode, bodyString)
 	}
 

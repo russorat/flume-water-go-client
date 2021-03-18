@@ -19,6 +19,11 @@ const (
 )
 
 type FlumeWaterNotificationsResponse struct {
+	*ResponseBase
+	Data []FlumeWaterNotification `json:"data"`
+}
+
+type FlumeWaterNotification struct {
 	ID              int                          `json:"id"`
 	DeviceID        string                       `json:"device_id"`
 	UserID          int                          `json:"user_id"`
@@ -39,7 +44,7 @@ type FlumeWaterNotificationsExtra struct {
 }
 
 type FlumeWaterNotificationsParams struct {
-	*BaseQueryParams
+	*QueryParamsBase
 	DeviceID          string                     `json:"device_id,omitempty"`
 	LocationID        int                        `json:"location_id,omitempty"`
 	AlertType         string                     `json:"alert_type,omitempty"`
@@ -50,15 +55,11 @@ type FlumeWaterNotificationsParams struct {
 
 func NewFlumeWaterNotificationsParams() *FlumeWaterNotificationsParams {
 	return &FlumeWaterNotificationsParams{
-		BaseQueryParams: &BaseQueryParams{},
+		QueryParamsBase: &QueryParamsBase{},
 	}
 }
 
-func (fw *FlumeWaterClient) FetchUserNotifications(queryParams FlumeWaterNotificationsParams) (flumeResp *FlumeWaterNotificationsResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
-
+func (fw *Client) FetchUserNotifications(queryParams FlumeWaterNotificationsParams) (notifications []FlumeWaterNotification, err error) {
 	if queryParams.SortDirection == "" {
 		queryParams.SortDirection = FlumeWaterSortDirectionAsc
 	}
@@ -67,13 +68,15 @@ func (fw *FlumeWaterClient) FetchUserNotifications(queryParams FlumeWaterNotific
 	}
 
 	v, _ := query.Values(queryParams)
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/notifications?" + v.Encode()
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/notifications?" + v.Encode()
 
-	flumeResp = new(FlumeWaterNotificationsResponse)
-	err = fw.FlumeGet(fetchURL, flumeResp)
+	var flumeResp FlumeWaterNotificationsResponse
+	err = fw.FlumeGet(fetchURL, &flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return flumeResp, nil
+	notifications = flumeResp.Data
+
+	return notifications, nil
 }

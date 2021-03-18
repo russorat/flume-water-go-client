@@ -6,7 +6,7 @@ import (
 )
 
 type FlumeWaterFetchDeviceResponse struct {
-	*FlumeResponseBase
+	*ResponseBase
 	Data []FlumeWaterDevice `json:"data"`
 }
 
@@ -42,33 +42,30 @@ type FlumeWaterUsageProfile struct {
 	IrrigationMaxCycle int    `json:"irrigation_max_cycle"`
 }
 
-func (fw *FlumeWaterClient) FetchUserDevices() (flumeResp *FlumeWaterFetchDeviceResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
+func (fw *Client) FetchUserDevices() (devices []FlumeWaterDevice, err error) {
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/devices"
 
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/devices"
-	flumeResp = new(FlumeWaterFetchDeviceResponse)
-	err = fw.FlumeGet(fetchURL, flumeResp)
+	var flumeResp FlumeWaterFetchDeviceResponse
+	err = fw.FlumeGet(fetchURL, &flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return flumeResp, nil
+	devices = flumeResp.Data
+
+	return devices, nil
 }
 
-func (fw *FlumeWaterClient) FetchUserDevice(deviceID string) (flumeResp *FlumeWaterFetchDeviceResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
+func (fw *Client) FetchUserDevice(deviceID string) (device FlumeWaterDevice, err error) {
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/devices/" + deviceID
 
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/devices/" + deviceID
-
-	flumeResp = new(FlumeWaterFetchDeviceResponse)
-	err = fw.FlumeGet(fetchURL, flumeResp)
+	var flumeResp FlumeWaterFetchDeviceResponse
+	err = fw.FlumeGet(fetchURL, &flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return flumeResp, nil
+	device = flumeResp.Data[0]
+
+	return device, nil
 }

@@ -21,7 +21,7 @@ func TestFlumeFetchUserLocations(t *testing.T) {
 	queryParams.Limit = 10
 	locations, err := client.FetchUserLocations(*queryParams)
 	assert.Nil(t, err)
-	assert.Equal(t, 1, locations.Count)
+	assert.Equal(t, 1, len(locations))
 }
 
 func TestFlumeFetchUserLocation(t *testing.T) {
@@ -35,7 +35,7 @@ func TestFlumeFetchUserLocation(t *testing.T) {
 	var queryParams = NewLocationsQueryParams()
 	queryParams.Limit = 10
 	locations, _ := client.FetchUserLocations(*queryParams)
-	location, err := client.FetchUserLocation(locations.Data[0].ID)
+	location, err := client.FetchUserLocation(locations[0].ID)
 	assert.Nil(t, err)
-	assert.Equal(t, 1, location.Count)
+	assert.Equal(t, locations[0].ID, location.ID)
 }

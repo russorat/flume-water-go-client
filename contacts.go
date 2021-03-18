@@ -7,14 +7,14 @@ import (
 )
 
 type FlumeWaterContactParams struct {
-	*BaseQueryParams
+	*QueryParamsBase
 	Type     FlumeWaterContactType     `json:"type,omitempty"`
 	Category FlumeWaterContactCategory `json:"category,omitempty"`
 }
 
 func NewFlumeWaterContactParams() *FlumeWaterContactParams {
 	return &FlumeWaterContactParams{
-		BaseQueryParams: &BaseQueryParams{},
+		QueryParamsBase: &QueryParamsBase{},
 	}
 }
 
@@ -32,7 +32,7 @@ const (
 )
 
 type FlumeWaterContactResponse struct {
-	*FlumeResponseBase
+	*ResponseBase
 	Data []FlumeWaterContact `json:"data"`
 }
 
@@ -43,7 +43,7 @@ type FlumeWaterContact struct {
 	Detail   string `json:"detail"`
 }
 
-func (fw *FlumeWaterClient) FetchFlumeContactInfo(queryParams FlumeWaterContactParams) (flumeResp *FlumeWaterContactResponse, err error) {
+func (fw *Client) FetchFlumeContactInfo(queryParams FlumeWaterContactParams) (contacts []FlumeWaterContact, err error) {
 	v, _ := query.Values(queryParams)
 	var encodedValues = v.Encode()
 	fetchURL := baseURL + "/contacts"
@@ -51,11 +51,13 @@ func (fw *FlumeWaterClient) FetchFlumeContactInfo(queryParams FlumeWaterContactP
 		fetchURL += "?" + v.Encode()
 	}
 
-	flumeResp = new(FlumeWaterContactResponse)
-	err = fw.FlumeGet(fetchURL, flumeResp)
+	var flumeResp FlumeWaterContactResponse
+	err = fw.FlumeGet(fetchURL, &flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return flumeResp, nil
+	contacts = flumeResp.Data
+
+	return contacts, nil
 }

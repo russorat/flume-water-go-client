@@ -8,7 +8,7 @@ import (
 )
 
 type FlumeWaterEventRuleResponse struct {
-	*FlumeResponseBase
+	*ResponseBase
 	Data []FlumeWaterEventRule `json:"data"`
 }
 
@@ -22,11 +22,7 @@ type FlumeWaterEventRule struct {
 	NotificationType string  `json:"notification_type"`
 }
 
-func (fw *FlumeWaterClient) FetchAllEventRulesForDevice(deviceID string, queryParams BaseQueryParams) (flumeResp *FlumeWaterEventRuleResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
-
+func (fw *Client) FetchAllEventRulesForDevice(deviceID string, queryParams QueryParamsBase) (eventRules []FlumeWaterEventRule, err error) {
 	if queryParams.SortDirection == "" {
 		queryParams.SortDirection = FlumeWaterSortDirectionAsc
 	}
@@ -35,13 +31,14 @@ func (fw *FlumeWaterClient) FetchAllEventRulesForDevice(deviceID string, queryPa
 	}
 
 	v, _ := query.Values(queryParams)
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/devices/" + deviceID + "/rules?" + v.Encode()
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/devices/" + deviceID + "/rules?" + v.Encode()
 
-	flumeResp = new(FlumeWaterEventRuleResponse)
-	err = fw.FlumeGet(fetchURL, flumeResp)
+	var flumeResp FlumeWaterEventRuleResponse
+	err = fw.FlumeGet(fetchURL, &flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
+	eventRules = flumeResp.Data
 
-	return flumeResp, nil
+	return eventRules, nil
 }

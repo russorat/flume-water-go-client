@@ -24,11 +24,11 @@ func TestFlumeQueryDevice(t *testing.T) {
 		SinceDatetime: "2021-03-12 00:00:00",
 		RequestID:     "test",
 	}
-	results, err := client.QueryUserDevice(devices.Data[0].ID, FlumeWaterQueryRequest{
+	results, err := client.QueryUserDevice(devices[0].ID, FlumeWaterQueryRequest{
 		Queries: []FlumeWaterQuery{query},
 	})
 	assert.Nil(t, err)
-	for key := range results.Data[0] {
+	for key := range results[0] {
 		assert.Equal(t, "test", key)
 	}
 }

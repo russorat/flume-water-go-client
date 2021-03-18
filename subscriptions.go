@@ -9,7 +9,7 @@ import (
 )
 
 type FlumeWaterUserSubscriptionsResponse struct {
-	*FlumeResponseBase
+	*ResponseBase
 	Data []FlumeWaterSubscription `json:"data"`
 }
 
@@ -25,7 +25,7 @@ type FlumeWaterSubscription struct {
 }
 
 type FlumeWaterSubscriptionParams struct {
-	*BaseQueryParams
+	*QueryParamsBase
 	AlertType         string                     `json:"alert_type,omitempty"`
 	NotificationTypes int                        `json:"notification_types,omitempty"`
 	NotificationType  FlumeWaterNotificationType `json:"notification_type,omitempty"`
@@ -36,15 +36,11 @@ type FlumeWaterSubscriptionParams struct {
 
 func NewFlumeWaterSubscriptionParams() *FlumeWaterSubscriptionParams {
 	return &FlumeWaterSubscriptionParams{
-		BaseQueryParams: &BaseQueryParams{},
+		QueryParamsBase: &QueryParamsBase{},
 	}
 }
 
-func (fw *FlumeWaterClient) FetchUserSubscriptions(queryParams FlumeWaterSubscriptionParams) (flumeResp *FlumeWaterUserSubscriptionsResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
-
+func (fw *Client) FetchUserSubscriptions(queryParams FlumeWaterSubscriptionParams) (subscriptions []FlumeWaterSubscription, err error) {
 	if queryParams.SortDirection == "" {
 		queryParams.SortDirection = FlumeWaterSortDirectionAsc
 	}
@@ -53,29 +49,29 @@ func (fw *FlumeWaterClient) FetchUserSubscriptions(queryParams FlumeWaterSubscri
 	}
 
 	v, _ := query.Values(queryParams)
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/subscriptions?" + v.Encode()
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/subscriptions?" + v.Encode()
 
-	flumeResp = new(FlumeWaterUserSubscriptionsResponse)
+	var flumeResp FlumeWaterUserSubscriptionsResponse
 	err = fw.FlumeGet(fetchURL, flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return flumeResp, nil
+	subscriptions = flumeResp.Data
+
+	return subscriptions, nil
 }
 
-func (fw *FlumeWaterClient) FetchUserSubscription(subscriptionID int) (flumeResp *FlumeWaterUserSubscriptionsResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
+func (fw *Client) FetchUserSubscription(subscriptionID int) (subscription FlumeWaterSubscription, err error) {
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/subscriptions/" + fmt.Sprint(subscriptionID)
 
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/subscriptions/" + fmt.Sprint(subscriptionID)
-
-	flumeResp = new(FlumeWaterUserSubscriptionsResponse)
+	var flumeResp FlumeWaterUserSubscriptionsResponse
 	err = fw.FlumeGet(fetchURL, flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return flumeResp, nil
+	subscription = flumeResp.Data[0]
+
+	return subscription, nil
 }

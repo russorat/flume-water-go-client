@@ -28,25 +28,22 @@ type FlumeWaterLocation struct {
 }
 
 type FlumeWaterLocationsResponse struct {
-	*FlumeResponseBase
+	*ResponseBase
 	Data []FlumeWaterLocation `json:"data"`
 }
 
 type LocationsQueryParams struct {
-	*BaseQueryParams
+	*QueryParamsBase
 	ListShared bool `url:"list_shared,omitempty"`
 }
 
 func NewLocationsQueryParams() *LocationsQueryParams {
 	return &LocationsQueryParams{
-		BaseQueryParams: &BaseQueryParams{},
+		QueryParamsBase: &QueryParamsBase{},
 	}
 }
 
-func (fw *FlumeWaterClient) FetchUserLocations(queryParams LocationsQueryParams) (flumeResp *FlumeWaterLocationsResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
+func (fw *Client) FetchUserLocations(queryParams LocationsQueryParams) (locations []FlumeWaterLocation, err error) {
 	if queryParams.SortDirection == "" {
 		queryParams.SortDirection = FlumeWaterSortDirectionAsc
 	}
@@ -55,42 +52,40 @@ func (fw *FlumeWaterClient) FetchUserLocations(queryParams LocationsQueryParams)
 	}
 
 	v, _ := query.Values(queryParams)
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/locations?" + v.Encode()
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/locations?" + v.Encode()
 
-	flumeResp = new(FlumeWaterLocationsResponse)
-	err = fw.FlumeGet(fetchURL, flumeResp)
+	var flumeResp FlumeWaterLocationsResponse
+	err = fw.FlumeGet(fetchURL, &flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	return flumeResp, nil
+	locations = flumeResp.Data
+	return locations, nil
 }
 
-func (fw *FlumeWaterClient) FetchUserLocation(locationID int) (flumeResp *FlumeWaterLocationsResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
+func (fw *Client) FetchUserLocation(locationID int) (location FlumeWaterLocation, err error) {
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/locations/" + fmt.Sprint(locationID)
 
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/locations/" + fmt.Sprint(locationID)
-
-	flumeResp = new(FlumeWaterLocationsResponse)
-	err = fw.FlumeGet(fetchURL, flumeResp)
+	var flumeResp FlumeWaterLocationsResponse
+	err = fw.FlumeGet(fetchURL, &flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return flumeResp, nil
+	location = flumeResp.Data[0]
+
+	return location, nil
 }
 
 type FlumeWaterUpdateUserLocationRequest struct {
 	AwayMode bool `json:"away_mode"`
 }
 
-func (fw *FlumeWaterClient) UpdateUserLocation(locationID string, awayMode bool) (flumeResp *FlumeResponseBase, err error) {
+func (fw *Client) UpdateUserLocation(locationID string, awayMode bool) (flumeResp *ResponseBase, err error) {
 	bodyParams := FlumeWaterUpdateUserLocationRequest{
 		AwayMode: awayMode,
 	}
-	patchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/locations/" + fmt.Sprint(locationID)
+	patchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/locations/" + fmt.Sprint(locationID)
 	jsonValue, _ := json.Marshal(bodyParams)
 
 	req, err := http.NewRequest(http.MethodPatch, patchURL, bytes.NewBuffer(jsonValue))
@@ -111,7 +106,7 @@ func (fw *FlumeWaterClient) UpdateUserLocation(locationID string, awayMode bool)
 		return nil, fmt.Errorf("when reading from [%s] received status code: %d", patchURL, resp.StatusCode)
 	}
 
-	flumeResp = new(FlumeResponseBase)
+	flumeResp = new(ResponseBase)
 	decoder := json.NewDecoder(resp.Body)
 
 	if err = decoder.Decode(flumeResp); err != nil {

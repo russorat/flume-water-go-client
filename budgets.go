@@ -8,7 +8,7 @@ import (
 )
 
 type FlumeWaterDeviceBudgetsResponse struct {
-	*FlumeResponseBase
+	*ResponseBase
 	Data []FlumeWaterBudget `json:"data"`
 }
 
@@ -21,11 +21,7 @@ type FlumeWaterBudget struct {
 	Actual     int    `json:"actual"`
 }
 
-func (fw *FlumeWaterClient) FetchDeviceBudgets(deviceID string, queryParams BaseQueryParams) (flumeResp *FlumeWaterDeviceBudgetsResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
-
+func (fw *Client) FetchDeviceBudgets(deviceID string, queryParams QueryParamsBase) (budgets []FlumeWaterBudget, err error) {
 	if queryParams.SortDirection == "" {
 		queryParams.SortDirection = FlumeWaterSortDirectionAsc
 	}
@@ -34,13 +30,15 @@ func (fw *FlumeWaterClient) FetchDeviceBudgets(deviceID string, queryParams Base
 	}
 
 	v, _ := query.Values(queryParams)
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/devices/" + deviceID + "?" + v.Encode()
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/devices/" + deviceID + "?" + v.Encode()
 
-	flumeResp = new(FlumeWaterDeviceBudgetsResponse)
-	err = fw.FlumeGet(fetchURL, flumeResp)
+	var flumeResp FlumeWaterDeviceBudgetsResponse
+	err = fw.FlumeGet(fetchURL, &flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return flumeResp, nil
+	budgets = flumeResp.Data
+
+	return budgets, nil
 }

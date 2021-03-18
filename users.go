@@ -6,7 +6,7 @@ import (
 )
 
 type FlumeWaterFetchUserResponse struct {
-	*FlumeResponseBase
+	*ResponseBase
 	Data []FlumeWaterUser `json:"data"`
 }
 
@@ -21,18 +21,14 @@ type FlumeWaterUser struct {
 	SignupDatetime string `json:"signup_datetime,omitempty"`
 }
 
-func (fw *FlumeWaterClient) FetchUser() (flumeResp *FlumeWaterFetchUserResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
+func (fw *Client) FetchUser() (flumeUser FlumeWaterUser, err error) {
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID())
 
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID)
-
-	flumeResp = new(FlumeWaterFetchUserResponse)
-	err = fw.FlumeGet(fetchURL, flumeResp)
+	var flumeResp FlumeWaterFetchUserResponse
+	err = fw.FlumeGet(fetchURL, &flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	return flumeResp, nil
+	flumeUser = flumeResp.Data[0]
+	return flumeUser, nil
 }

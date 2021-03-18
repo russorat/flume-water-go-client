@@ -9,7 +9,7 @@ import (
 )
 
 type FlumeWaterUsageAlertsResponse struct {
-	*FlumeResponseBase
+	*ResponseBase
 	Data []FlumeWaterUsageAlert `json:"data"`
 }
 
@@ -32,22 +32,18 @@ type FlumeWaterUsageAlertQuery struct {
 }
 
 type FlumeWaterUsageAlertsParams struct {
-	*BaseQueryParams
+	*QueryParamsBase
 	DeviceID  string `json:"device_id,omitempty"`
 	FlumeLeak bool   `json:"flume_leak,omitempty"`
 }
 
 func NewFlumeWaterUsageAlertsParams() *FlumeWaterUsageAlertsParams {
 	return &FlumeWaterUsageAlertsParams{
-		BaseQueryParams: &BaseQueryParams{},
+		QueryParamsBase: &QueryParamsBase{},
 	}
 }
 
-func (fw *FlumeWaterClient) FetchUserUsageAlerts(queryParams FlumeWaterUsageAlertsParams) (flumeResp *FlumeWaterUsageAlertsResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
-
+func (fw *Client) FetchUserUsageAlerts(queryParams FlumeWaterUsageAlertsParams) (flumeResp *FlumeWaterUsageAlertsResponse, err error) {
 	if queryParams.SortDirection == "" {
 		queryParams.SortDirection = FlumeWaterSortDirectionAsc
 	}
@@ -56,7 +52,7 @@ func (fw *FlumeWaterClient) FetchUserUsageAlerts(queryParams FlumeWaterUsageAler
 	}
 
 	v, _ := query.Values(queryParams)
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/usage-alerts?" + v.Encode()
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/usage-alerts?" + v.Encode()
 
 	flumeResp = new(FlumeWaterUsageAlertsResponse)
 	err = fw.FlumeGet(fetchURL, flumeResp)
@@ -68,8 +64,8 @@ func (fw *FlumeWaterClient) FetchUserUsageAlerts(queryParams FlumeWaterUsageAler
 }
 
 type FlumeWaterUsageAlertRuleResponse struct {
-	*FlumeResponseBase
-	Data []FlumeWaterEventRule `json:"data"`
+	*ResponseBase
+	Data []FlumeWaterUsageAlertRule `json:"data"`
 }
 
 type FlumeWaterUsageAlertRule struct {
@@ -81,11 +77,7 @@ type FlumeWaterUsageAlertRule struct {
 	NotifyEvery int     `json:"notify_every"`
 }
 
-func (fw *FlumeWaterClient) FetchAllUsageAlertRulesForDevice(deviceID string, queryParams BaseQueryParams) (flumeResp *FlumeWaterUsageAlertRuleResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
-
+func (fw *Client) FetchAllUsageAlertRulesForDevice(deviceID string, queryParams QueryParamsBase) (alertRules []FlumeWaterUsageAlertRule, err error) {
 	if queryParams.SortDirection == "" {
 		queryParams.SortDirection = FlumeWaterSortDirectionAsc
 	}
@@ -94,29 +86,28 @@ func (fw *FlumeWaterClient) FetchAllUsageAlertRulesForDevice(deviceID string, qu
 	}
 
 	v, _ := query.Values(queryParams)
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/devices/" + deviceID + "/rules/usage-alerts?" + v.Encode()
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/devices/" + deviceID + "/rules/usage-alerts?" + v.Encode()
 
-	flumeResp = new(FlumeWaterUsageAlertRuleResponse)
-	err = fw.FlumeGet(fetchURL, flumeResp)
+	var flumeResp FlumeWaterUsageAlertRuleResponse
+	err = fw.FlumeGet(fetchURL, &flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return flumeResp, nil
+	alertRules = flumeResp.Data
+
+	return alertRules, nil
 }
 
-func (fw *FlumeWaterClient) FetchSingleUsageAlertRulesForDevice(deviceID string, RuleID int) (flumeResp *FlumeWaterUsageAlertRuleResponse, err error) {
-	if fw.userID == 0 {
-		fw.GetToken()
-	}
+func (fw *Client) FetchSingleUsageAlertRulesForDevice(deviceID string, RuleID int) (usageAlert FlumeWaterUsageAlertRule, err error) {
+	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/devices/" + deviceID + "/rules/usage-alerts/" + fmt.Sprint(RuleID)
 
-	fetchURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/devices/" + deviceID + "/rules/usage-alerts/" + fmt.Sprint(RuleID)
-
-	flumeResp = new(FlumeWaterUsageAlertRuleResponse)
-	err = fw.FlumeGet(fetchURL, flumeResp)
+	var flumeResp FlumeWaterUsageAlertRuleResponse
+	err = fw.FlumeGet(fetchURL, &flumeResp)
 	if err != nil {
 		log.Fatal(err)
 	}
+	usageAlert = flumeResp.Data[0]
 
-	return flumeResp, nil
+	return usageAlert, nil
 }

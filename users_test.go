@@ -19,5 +19,5 @@ func TestFlumeFetchUser(t *testing.T) {
 	client := NewClient(os.Getenv("FLUME_CLIENT_ID"), os.Getenv("FLUME_CLIENT_SECRET"), os.Getenv("FLUME_USERNAME"), os.Getenv("FLUME_PASSWORD"))
 	user, err := client.FetchUser()
 	assert.Nil(t, err)
-	assert.Equal(t, client.userID, user.Data[0].ID)
+	assert.Equal(t, client.userID, user.ID)
 }

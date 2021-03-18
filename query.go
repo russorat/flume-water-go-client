@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
-	"strings"
 )
 
 type FlumeWaterQueryResponse struct {
-	*FlumeResponseBase
+	*ResponseBase
 	Data []FlumeWaterQueryResult `json:"data"`
 }
 
@@ -71,13 +71,8 @@ const (
 	FlumeWaterSortDirectionDesc FlumeWaterSortDirection = "DESC"
 )
 
-type FlumeWaterQueryErrorResponse struct {
-	*FlumeResponseBase
-	Detailed []FlumeWaterDetailed `json:"detailed"`
-}
-
-func (fw *FlumeWaterClient) QueryUserDevice(deviceID string, Queries FlumeWaterQueryRequest) (flumeResp *FlumeWaterQueryResponse, err error) {
-	queryDeviceURL := baseURL + "/users/" + fmt.Sprint(fw.userID) + "/devices/" + deviceID + "/query"
+func (fw *Client) QueryUserDevice(deviceID string, Queries FlumeWaterQueryRequest) (queryResults []FlumeWaterQueryResult, err error) {
+	queryDeviceURL := baseURL + "/users/" + fmt.Sprint(fw.UserID()) + "/devices/" + deviceID + "/query"
 	jsonValue, _ := json.Marshal(Queries)
 
 	req, err := http.NewRequest(http.MethodPost, queryDeviceURL, bytes.NewBuffer(jsonValue))
@@ -99,21 +94,23 @@ func (fw *FlumeWaterClient) QueryUserDevice(deviceID string, Queries FlumeWaterQ
 	defer resp.Body.Close()
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest {
-		var flumeErrorResp = new(FlumeWaterErrorResponse)
-		decoder := json.NewDecoder(resp.Body)
-
-		if err = decoder.Decode(flumeErrorResp); err != nil {
-			return nil, fmt.Errorf("payload JSON decode failed: %w", err)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
 		}
-		return nil, fmt.Errorf("when reading from [%s] received status code: %d with error: %s", queryDeviceURL, resp.StatusCode, strings.Join(flumeErrorResp.Detailed, ","))
+		bodyString := string(bodyBytes)
+
+		return nil, fmt.Errorf("when reading from [%s] received status code: %d with error: %s", queryDeviceURL, resp.StatusCode, bodyString)
 	}
 
-	flumeResp = new(FlumeWaterQueryResponse)
+	var flumeResp FlumeWaterQueryResponse
 	decoder := json.NewDecoder(resp.Body)
 
-	if err = decoder.Decode(flumeResp); err != nil {
+	if err = decoder.Decode(&flumeResp); err != nil {
 		return nil, fmt.Errorf("payload JSON decode failed: %w", err)
 	}
 
-	return flumeResp, nil
+	queryResults = flumeResp.Data
+
+	return queryResults, nil
 }

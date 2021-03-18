@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
@@ -18,7 +19,7 @@ type FlumeWaterAuthRequest struct {
 }
 
 type FlumeWaterAuthResponse struct {
-	*FlumeResponseBase
+	*ResponseBase
 	Data []FlumeWaterAuthData `json:"data"`
 }
 
@@ -29,7 +30,7 @@ type FlumeWaterAuthData struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-func (fw *FlumeWaterClient) GetToken() (err error) {
+func (fw *Client) GetToken() (err error) {
 	authParams := FlumeWaterAuthRequest{
 		GrantType:    "password",
 		ClientID:     fw.ClientID,
@@ -59,13 +60,25 @@ func (fw *FlumeWaterClient) GetToken() (err error) {
 		return fmt.Errorf("when reading from [%s] received status code: %d", tokenURL, resp.StatusCode)
 	}
 
-	var flumeResp = new(FlumeWaterAuthResponse)
+	var flumeResp FlumeWaterAuthResponse
 	decoder := json.NewDecoder(resp.Body)
 
-	if err = decoder.Decode(flumeResp); err != nil {
+	if err = decoder.Decode(&flumeResp); err != nil {
 		return fmt.Errorf("payload JSON decode failed: %w", err)
 	}
 	fw.AuthData = flumeResp.Data[0]
+	fw.UserID()
+	return nil
+}
+
+func (fw *Client) UserID() (userID int) {
+	if fw.userID > 0 {
+		return fw.userID
+	}
+
+	if fw.AuthData.AccessToken == "" {
+		fw.GetToken()
+	}
 
 	type MyCustomClaims struct {
 		UserID int `json:"user_id"`
@@ -74,11 +87,12 @@ func (fw *FlumeWaterClient) GetToken() (err error) {
 
 	token, err := jwt.ParseWithClaims(fw.AuthData.AccessToken, &MyCustomClaims{}, nil)
 	if token == nil {
-		return err
+		log.Fatal(err)
 	}
 	claims, _ := token.Claims.(*MyCustomClaims)
 	fw.userID = claims.UserID
-	return nil
+
+	return fw.userID
 }
 
 type FlumeWaterRefreshTokenRequest struct {
@@ -88,7 +102,7 @@ type FlumeWaterRefreshTokenRequest struct {
 	ClientSecret string `json:"client_secret"`
 }
 
-func (fw *FlumeWaterClient) RefreshToken() (err error) {
+func (fw *Client) RefreshToken() (err error) {
 	refreshParams := FlumeWaterRefreshTokenRequest{
 		GrantType:    "refresh_token",
 		RefreshToken: fw.AuthData.RefreshToken,
@@ -116,10 +130,10 @@ func (fw *FlumeWaterClient) RefreshToken() (err error) {
 		return fmt.Errorf("when reading from [%s] received status code: %d", tokenURL, resp.StatusCode)
 	}
 
-	var flumeResp = new(FlumeWaterAuthResponse)
+	var flumeResp FlumeWaterAuthResponse
 	decoder := json.NewDecoder(resp.Body)
 
-	if err = decoder.Decode(flumeResp); err != nil {
+	if err = decoder.Decode(&flumeResp); err != nil {
 		return fmt.Errorf("payload JSON decode failed: %w", err)
 	}
 	fw.AuthData = flumeResp.Data[0]
