@@ -26,12 +26,12 @@ type FlumeWaterSubscription struct {
 
 type FlumeWaterSubscriptionParams struct {
 	*QueryParamsBase
-	AlertType         string                     `json:"alert_type,omitempty"`
-	NotificationTypes int                        `json:"notification_types,omitempty"`
-	NotificationType  FlumeWaterNotificationType `json:"notification_type,omitempty"`
-	DeviceID          string                     `json:"device_id,omitempty"`
-	DeviceType        FlumeWaterDeviceType       `json:"device_type,omitempty"`
-	LocationID        int                        `json:"location_id,omitempty"`
+	AlertType         string                     `url:"alert_type,omitempty"`
+	NotificationTypes int                        `url:"notification_types,omitempty"`
+	NotificationType  FlumeWaterNotificationType `url:"notification_type,omitempty"`
+	DeviceID          string                     `url:"device_id,omitempty"`
+	DeviceType        FlumeWaterDeviceType       `url:"device_type,omitempty"`
+	LocationID        int                        `url:"location_id,omitempty"`
 }
 
 func NewFlumeWaterSubscriptionParams() *FlumeWaterSubscriptionParams {

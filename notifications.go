@@ -45,12 +45,12 @@ type FlumeWaterNotificationsExtra struct {
 
 type FlumeWaterNotificationsParams struct {
 	*QueryParamsBase
-	DeviceID          string                     `json:"device_id,omitempty"`
-	LocationID        int                        `json:"location_id,omitempty"`
-	AlertType         string                     `json:"alert_type,omitempty"`
-	NotificationType  FlumeWaterNotificationType `json:"type,omitempty"`
-	NotificationTypes int                        `json:"types,omitempty"`
-	Read              bool                       `json:"read,omitempty"`
+	DeviceID          string                     `url:"device_id,omitempty"`
+	LocationID        int                        `url:"location_id,omitempty"`
+	AlertType         string                     `url:"alert_type,omitempty"`
+	NotificationType  FlumeWaterNotificationType `url:"type,omitempty"`
+	NotificationTypes int                        `url:"types,omitempty"`
+	Read              bool                       `url:"read,omitempty"`
 }
 
 func NewFlumeWaterNotificationsParams() *FlumeWaterNotificationsParams {

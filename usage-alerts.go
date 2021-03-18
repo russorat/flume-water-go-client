@@ -33,8 +33,8 @@ type FlumeWaterUsageAlertQuery struct {
 
 type FlumeWaterUsageAlertsParams struct {
 	*QueryParamsBase
-	DeviceID  string `json:"device_id,omitempty"`
-	FlumeLeak bool   `json:"flume_leak,omitempty"`
+	DeviceID  string `url:"device_id,omitempty"`
+	FlumeLeak bool   `url:"flume_leak,omitempty"`
 }
 
 func NewFlumeWaterUsageAlertsParams() *FlumeWaterUsageAlertsParams {

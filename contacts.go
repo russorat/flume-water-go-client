@@ -8,8 +8,8 @@ import (
 
 type FlumeWaterContactParams struct {
 	*QueryParamsBase
-	Type     FlumeWaterContactType     `json:"type,omitempty"`
-	Category FlumeWaterContactCategory `json:"category,omitempty"`
+	Type     FlumeWaterContactType     `url:"type,omitempty"`
+	Category FlumeWaterContactCategory `url:"category,omitempty"`
 }
 
 func NewFlumeWaterContactParams() *FlumeWaterContactParams {

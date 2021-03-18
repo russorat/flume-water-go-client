@@ -17,7 +17,7 @@ func TestFlumeFetchUserDevices(t *testing.T) {
 	}
 
 	client := NewClient(os.Getenv("FLUME_CLIENT_ID"), os.Getenv("FLUME_CLIENT_SECRET"), os.Getenv("FLUME_USERNAME"), os.Getenv("FLUME_PASSWORD"))
-	devices, err := client.FetchUserDevices(FlumeWaterFetchDeviceRequest{})
+	devices, err := client.FetchUserDevices(FlumeWaterFetchDeviceRequest{IncludeUser: true, IncludeLocation: true})
 	assert.Nil(t, err)
 	assert.Equal(t, client.userID, devices[0].UserID)
 }

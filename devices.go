@@ -45,8 +45,8 @@ type FlumeWaterUsageProfile struct {
 }
 
 type FlumeWaterFetchDeviceRequest struct {
-	IncludeUser     bool `json:"user,omitempty"`
-	IncludeLocation bool `json:"location,omitempty"`
+	IncludeUser     bool `url:"user,omitempty"`
+	IncludeLocation bool `url:"location,omitempty"`
 }
 
 func (fw *Client) FetchUserDevices(queryParams FlumeWaterFetchDeviceRequest) (devices []FlumeWaterDevice, err error) {
